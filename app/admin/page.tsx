@@ -30,6 +30,27 @@ import { LogoutButton } from "@/components/logout-button"
 
 export default function AdminDashboard() {
   const [selectedQuarter, setSelectedQuarter] = useState("Q4 2024")
+  
+  // Form state for metrics
+  const [swapVolume, setSwapVolume] = useState("$12.5M")
+  const [cardSpending, setCardSpending] = useState("$8.2M")
+  const [transactingAccounts, setTransactingAccounts] = useState(15420)
+  
+  // Form state for financial data
+  const [cash, setCash] = useState("$45.2M")
+  const [monthlyBurn, setMonthlyBurn] = useState("$2.1M")
+  const [runwayMonths, setRunwayMonths] = useState(21)
+  const [monthlyRevenue, setMonthlyRevenue] = useState("$890K")
+  const [headcount, setHeadcount] = useState(67)
+  
+  // Form state for highlights
+  const [ceoUpdate, setCeoUpdate] = useState("Q4 has been transformational for Argent. We've successfully launched our new DeFi vault products and seen exceptional growth in card adoption. Our focus on institutional clients is paying off with several major partnerships in the pipeline.")
+  
+  // Form state for call to action
+  const [ctaTitle, setCtaTitle] = useState("Partnership Opportunities")
+  const [ctaDescription, setCtaDescription] = useState("We're seeking strategic partnerships with institutional players. If you have connections in traditional finance or enterprise crypto, we'd love an introduction.")
+  const [ctaButtonText, setCtaButtonText] = useState("Make an Introduction")
+  
   const [achievements, setAchievements] = useState([
     "Launched DeFi vault products with $5M TVL in first month",
     "Argent card transactions increased 45% QoQ",
@@ -127,22 +148,55 @@ export default function AdminDashboard() {
 
   const handleSave = async () => {
     try {
+      // Collect all form data in the structure expected by the backend
+      const quarterlyData = {
+        quarter: selectedQuarter,
+        metrics: {
+          swapVolume: swapVolume,
+          cardSpending: cardSpending,
+          weeklyTransactingAccounts: transactingAccounts,
+        },
+        financial: {
+          cash: cash,
+          monthlyBurn: monthlyBurn,
+          runwayMonths: runwayMonths,
+          monthlyRevenue: monthlyRevenue,
+          headcount: headcount,
+        },
+        highlights: {
+          ceoUpdate: ceoUpdate,
+          achievements: achievements,
+          challenges: challenges,
+          nextQuarterMilestones: milestones,
+        },
+        documents: uploadedFiles.map((file, index) => ({
+          id: `doc_${index}`,
+          name: file.name,
+          type: file.type,
+          date: file.date,
+        })),
+        callToAction: {
+          title: ctaTitle,
+          description: ctaDescription,
+          actionText: ctaButtonText,
+        },
+        isPublished: true, // You might want to add a toggle for this
+      }
+
       // Call the quarterly data API
       const response = await fetch("/api/quarterly-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          quarter: selectedQuarter,
-          // Include other data you want to save
-        }),
+        body: JSON.stringify(quarterlyData),
       })
 
       if (response.ok) {
         alert("Data saved successfully!")
       } else {
-        alert("Failed to save data.")
+        const errorData = await response.json()
+        alert(`Failed to save data: ${errorData.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error("Error saving data:", error)
@@ -302,15 +356,31 @@ export default function AdminDashboard() {
                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="swapVolume">In-App Swap Volume</Label>
-                    <Input id="swapVolume" placeholder="e.g., $12.5M" defaultValue="$12.5M" />
+                    <Input 
+                      id="swapVolume" 
+                      placeholder="e.g., $12.5M" 
+                      value={swapVolume}
+                      onChange={(e) => setSwapVolume(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cardSpending">Argent Card Spending</Label>
-                    <Input id="cardSpending" placeholder="e.g., $8.2M" defaultValue="$8.2M" />
+                    <Input 
+                      id="cardSpending" 
+                      placeholder="e.g., $8.2M" 
+                      value={cardSpending}
+                      onChange={(e) => setCardSpending(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="transactingAccounts">Weekly Transacting Accounts</Label>
-                    <Input id="transactingAccounts" placeholder="e.g., 15420" defaultValue="15420" />
+                    <Input 
+                      id="transactingAccounts" 
+                      placeholder="e.g., 15420" 
+                      type="number"
+                      value={transactingAccounts}
+                      onChange={(e) => setTransactingAccounts(Number(e.target.value))}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -327,23 +397,50 @@ export default function AdminDashboard() {
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="cash">Cash Position</Label>
-                    <Input id="cash" placeholder="e.g., $45.2M" defaultValue="$45.2M" />
+                    <Input 
+                      id="cash" 
+                      placeholder="e.g., $45.2M" 
+                      value={cash}
+                      onChange={(e) => setCash(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="burn">Monthly Burn</Label>
-                    <Input id="burn" placeholder="e.g., $2.1M" defaultValue="$2.1M" />
+                    <Input 
+                      id="burn" 
+                      placeholder="e.g., $2.1M" 
+                      value={monthlyBurn}
+                      onChange={(e) => setMonthlyBurn(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="runway">Runway (Months)</Label>
-                    <Input id="runway" placeholder="e.g., 21" defaultValue="21" />
+                    <Input 
+                      id="runway" 
+                      placeholder="e.g., 21" 
+                      type="number"
+                      value={runwayMonths}
+                      onChange={(e) => setRunwayMonths(Number(e.target.value))}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="revenue">Monthly Revenue</Label>
-                    <Input id="revenue" placeholder="e.g., $890K" defaultValue="$890K" />
+                    <Input 
+                      id="revenue" 
+                      placeholder="e.g., $890K" 
+                      value={monthlyRevenue}
+                      onChange={(e) => setMonthlyRevenue(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="headcount">Headcount</Label>
-                    <Input id="headcount" placeholder="e.g., 67" defaultValue="67" />
+                    <Input 
+                      id="headcount" 
+                      placeholder="e.g., 67" 
+                      type="number"
+                      value={headcount}
+                      onChange={(e) => setHeadcount(Number(e.target.value))}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -360,7 +457,8 @@ export default function AdminDashboard() {
                   <Textarea
                     placeholder="Enter CEO's quarterly update message..."
                     className="min-h-[100px]"
-                    defaultValue="Q4 has been transformational for Argent. We've successfully launched our new DeFi vault products and seen exceptional growth in card adoption. Our focus on institutional clients is paying off with several major partnerships in the pipeline."
+                    value={ceoUpdate}
+                    onChange={(e) => setCeoUpdate(e.target.value)}
                   />
                 </CardContent>
               </Card>
@@ -536,7 +634,8 @@ export default function AdminDashboard() {
                     <Input
                       id="ctaTitle"
                       placeholder="e.g., Partnership Opportunities"
-                      defaultValue="Partnership Opportunities"
+                      value={ctaTitle}
+                      onChange={(e) => setCtaTitle(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -544,7 +643,8 @@ export default function AdminDashboard() {
                     <Textarea
                       id="ctaDescription"
                       placeholder="Describe what you're asking from investors..."
-                      defaultValue="We're seeking strategic partnerships with institutional players. If you have connections in traditional finance or enterprise crypto, we'd love an introduction."
+                      value={ctaDescription}
+                      onChange={(e) => setCtaDescription(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -552,7 +652,8 @@ export default function AdminDashboard() {
                     <Input
                       id="ctaButton"
                       placeholder="e.g., Make an Introduction"
-                      defaultValue="Make an Introduction"
+                      value={ctaButtonText}
+                      onChange={(e) => setCtaButtonText(e.target.value)}
                     />
                   </div>
                 </CardContent>
